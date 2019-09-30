@@ -1,64 +1,69 @@
-.app-header{
-    background-color: rgb(64, 71, 71) !important;
-    height: 36px;
-    padding: 8px 32px 8px 16px;
+.restaurant-details-container{
+    display: flex;
+    align-items: center;
+    padding: 25px;
+    background-color: rgb(231, 231, 231)
 }
 
-.login-spacing{
-    margin-left: 5px;
+@media screen and (max-width:600px){
+    .restaurant-details-container{
+        flex-direction: column;
+    }
+    .restaurant-details{
+        text-align: center;
+    }
+    .restaurant-avg-cost-container{
+        margin-left: 50px;
+    }
+    .restaurant-rating{
+        align-self: center;
+
+    }
+    .restaurant-avg-cost{
+        place-content: center;
+    }
+   
+
 }
 
-.logo{
-    float: left;
-    vertical-align: center; 
-    margin-left: -25px;
-    margin-bottom: 25px;
+.restaurant-rating-cost-container{
+    display: flex;
+    align-items: center;
+}
+@media screen and (min-width:600px){
+    .restaurant-details{
+        margin-left: 75px;
+        width: 100%;
+    }
 }
 
-.app-logo{
-    color: white;
-    margin: 6px;
+.restaurant-rating{
+    display: flex;
+    align-items: baseline;
+
 }
 
-.search-box{
-    vertical-align: center;
-    margin-bottom: 30px;
-    margin-left: 30px;
+.restaurant-avg-cost{
+    display: flex;
+    align-items: baseline;
+    
+}
+.restaurant-rating-container{
+    display: flex;
+    flex-direction: column;
+}
+@media screen and (min-width:600px){
+.restaurant-avg-cost-container{
+    display: flex;
+    flex-direction: column;
+    margin-left: 350px;
+}
 }
 
+.restaurant-photo {
+    width: 275px;
+    height: 215px;
+    padding: 10px 10px;
+    margin: 10px 10px;
 
-.search{
-    padding-bottom: 5px;
-    color: white;
-}
-
-.login-button{
-    float: right;
-    margin-top: -31px !important;
-    margin-right: -10px !important;
-}
-
-.tabs{
-    margin-bottom: 20px;
-    text-align: center;
-}
-
-.dispNone{
-    display: none;
-}
-
-.dispBlock{
-    display: block;
-}
-
-.red{
-    color: red;
-}
-
-.error-msg{
-    color: red;
-    padding-left: 40px;
-    padding-right: 25px;
-    text-align: left;
-    width: 85%;
 }
