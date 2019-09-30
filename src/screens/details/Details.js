@@ -103,9 +103,7 @@ class Details extends Component {
                      rating: resp.customer_rating,
                      numberOfCustomers: resp.number_customers_rated,
                      avgCostForTwo: resp.average_price});
-
             }
-
         })
         xhr.open("GET", this.props.baseUrl + "/restaurant/" + this.props.match.params.id);
         xhr.setRequestHeader("Cache-Control", "no-cache");
@@ -206,12 +204,13 @@ class Details extends Component {
                 "restaurant_name": this.state.restaurantName
             }
             customerCart["totalPrice"] = this.state.totalCost
-            sessionStorage.setItem("customer-cart", customerCart)
-            this.props.history.push({
-                pathname: '/checkout/' + this.props.match.params.id,
-                cartItems: this.state.cartItems,
+            sessionStorage.setItem("customer-cart", customerCart);
+           // this.props.history.push({
+                /* pathname: '/checkout/' + this.props.match.params.id,
+                cartItems: this.state.cartItems, */
+                this.props.history.push("/checkout");
 
-            })
+           // })
         }
     }
 
@@ -279,7 +278,7 @@ class Details extends Component {
                     <div className="menu-details">
 
                         {Object.entries(this.state.categories).map(category => (
-                            <div key={category.id}>
+                            <div key={"Categoty"+category.id}>
                                 <Typography variant="subtitle1" component="subtitle1" >{String(category[0]).toUpperCase()}</Typography>
                                 <Divider />
                                 {
