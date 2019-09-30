@@ -105,11 +105,12 @@ class Header extends Component {
     componentDidMount(){
     }
 
+    //Function used to open modal.. this function initializes modal as per the set values defined within...
     openModalHandler = () => {
         this.setState({
             modalIsOpen: true,
             value: 0,
-           /*  logincontactno: "",
+            logincontactno: "",
             logincontactnoRequired: "dispNone",
             loginpassword: "",
             loginpasswordRequired: "dispNone",
@@ -121,10 +122,16 @@ class Header extends Component {
             signupPassword: "",
             signupPasswordRequired: "dispNone",
             signupcontactno: "",
-            signupcontactnoRequired: "dispNone", */
+            signupcontactnoRequired: "dispNone",
+
         });
+         // Change visibility of badge in details page if login button is clicked
+         if(this.props.changeBadgeVisibility) {
+            this.props.changeBadgeVisibility() 
+         }
     }
 
+    //Handler function to close the modal 
     closeModalHandler = () => {
         this.setState({ modalIsOpen: false });
         //Resetting login tab parameters as that to before closing login tab
@@ -136,12 +143,18 @@ class Header extends Component {
         this.setState({firstnameRequired: "dispNone"});
         this.setState({signupErrorMsg: ""});
         this.setState({loginErrorMsg: ""});
+
+        if (this.props.changeBadgeVisibility) {
+            this.props.changeBadgeVisibility();
+        }
     }
 
+    //Handler function to manage tab change events
     tabChangeHandler = (event, value) => {
         this.setState({ value })
     }
 
+    //Handler function defined for submitting login form on login tab it checks for login field validations
     loginClickHandler = () => {
         this.state.loginpassword === "" ? this.setState({ loginpasswordRequired: "dispBlock" }) :
         this.setState({ loginpasswordRequired: "dispNone" });
@@ -153,8 +166,13 @@ class Header extends Component {
         if(isValidLoginContactNo===true && this.state.loginpassword !== ""){
             this.callLoginApi();
         }
+        
+        
       }
 
+
+    //Handler function handles submission of signup form it performs email, password & contact no. field valiations
+    //before allowing user a successful signup otherwise it sends appropriate messages
     signupClickHandler = () => {
         this.state.firstname === "" ? this.setState({ firstnameRequired: "dispBlock" }) :
             this.setState({ firstnameRequired: "dispNone" });
@@ -355,35 +373,42 @@ class Header extends Component {
         xhrLogout.send();
     }
 
-
+    //function to handle the changes in contact no. field on log in form/tab
     inputloginContactnoChangeHandler = (e) => {
         this.setState({ logincontactno: e.target.value });
     }
 
+    //function to handle the changes in password field on log in form/tab
     inputloginPasswordChangeHandler = (e) => {
         this.setState({ loginpassword: e.target.value });
     }
 
+    //function to handle the changes in first name field on signup in form/tab
     inputFirstnameChangeHandler = (e) => {
         this.setState({ firstname: e.target.value });
     }
 
+    //function to handle the changes in last name field on signup in form/tab
     inputLastnameChangeHandler = (e) => {
         this.setState({ lastname: e.target.value });
     }
 
+    //function to handle the changes in email field on signup in form/tab
     inputEmailChangeHandler = (e) => {
         this.setState({ email: e.target.value })
     }
 
+    //function to handle the changes in password field on signup in form/tab
     inputSignupPasswordChangeHandler = (e) => {
         this.setState({ signupPassword: e.target.value });
     }
 
+    //function to handle the changes in contact no. field on signup in form/tab
     inputsignupcontactnoChangeHandler = (e) => {
         this.setState({ signupcontactno: e.target.value });
     }
 
+    //This function handles close event on snackbar
     snackbarClose = (event, reason) => {
         if(reason === "clickaway"){
             return;
@@ -391,6 +416,7 @@ class Header extends Component {
         this.setState({open:false});
     }
 
+    //Function opens the menu item list on onClick event on login buttion
     openMenuItemsHandler = event => {
         this.setState({
           showUserProfileDropDown: true
@@ -398,6 +424,7 @@ class Header extends Component {
         this.setState({ anchorEl: event.currentTarget });
       };
     
+      //Function closes the menu item list
       closeMenuItemsHandler = () => {
         this.setState({
           showUserProfileDropDown: false
@@ -405,12 +432,14 @@ class Header extends Component {
         this.setState({ anchorEl: null });
       };
     
+      //sending history information to the profile page
       openProfilePageHandler = () => {
         this.props.history.push("/profile");
         this.closeMenuItemsHandler();
        };
     
-      logoutHandler = () => {
+       //This function handles log out event on the logout list/tab of menulist on the login button of header
+       logoutHandler = () => {
           this.closeMenuItemsHandler();
           this.setState({
             showUserProfileDropDown: false,
@@ -418,13 +447,22 @@ class Header extends Component {
           });
         this.callLogoutApi();
       };
-    
+
+      //This function handles the input query typed on search box
+      inputChangeHandler = e => {
+          sessionStorage.removeItem("query");
+          sessionStorage.setItem("query", e.target.value);
+          this.setState({query:e.target.value});
+          this.props.searchHandler(e.target.value);
+      }
+
+ 
 
     render() {
         const { classes } = this.props;
         const { anchorEl} = this.state;
         return (
-            //This code section implements the LOGO, Search Box and LOGIN button part of the header
+            //This code section implements the LOGO, Search Box and LOGIN button part of the header..the entire header implementation
             <div>
                 <header className="app-header">
                 <Toolbar>
@@ -440,6 +478,7 @@ class Header extends Component {
                         </SvgIcon>
                     </div>
                     </Grid>
+                    {this.props.showSearchBox === true && (
                     <Grid item>
                     {this.props.showSearchBox === true &&
                     <div className="search-box">
@@ -453,11 +492,13 @@ class Header extends Component {
                                     </SvgIcon>
                                 </InputAdornment>
                             }
+                            onChange={this.inputChangeHandler}
                             placeholder="Search by Restaurant Name"
                         />
                     </div>
                     }
                     </Grid>
+                    )}
                     <Grid item>
                     <div className="login-button">
                         {sessionStorage.getItem("username")!== null && (
@@ -515,7 +556,12 @@ class Header extends Component {
                         <TabContainer>
                             <FormControl required className={classes.formControl}>
                                 <InputLabel htmlFor="logincontactno">Contact No</InputLabel>
-                                <Input id="logincontactno" type="text" logincontactno={this.state.logincontactno} onChange={this.inputloginContactnoChangeHandler} />
+                                <Input 
+                                    id="logincontactno" 
+                                    type="text" 
+                                    logincontactno={this.state.logincontactno} 
+                                    onChange={this.inputloginContactnoChangeHandler} 
+                                    defaultValue={this.state.logincontactno}/>
                                 <FormHelperText className={this.state.logincontactnoRequired}>
                                 {this.state.validLoginContactNo === true ? <span className="red">Required</span> :
                                     <span className="red">Invalid Contact</span>}
@@ -523,7 +569,12 @@ class Header extends Component {
                             </FormControl><br /><br />
                             <FormControl required className={classes.formControl}>
                                 <InputLabel htmlFor="loginpassword">Password</InputLabel>
-                                <Input id="loginpassword" type="password" loginpassword={this.state.loginpassword} onChange={this.inputloginPasswordChangeHandler} />
+                                <Input 
+                                    id="loginpassword" 
+                                    type="password" 
+                                    loginpassword={this.state.loginpassword} 
+                                    defaultValue={this.state.loginpassword}
+                                    onChange={this.inputloginPasswordChangeHandler} />
                                 <FormHelperText className={this.state.loginpasswordRequired}><span className="red">Required</span></FormHelperText>
                             </FormControl><br />
                                <br />
@@ -535,16 +586,33 @@ class Header extends Component {
                         <TabContainer>
                             <FormControl required className={classes.formControl}>
                                 <InputLabel htmlFor="firstname">First Name</InputLabel>
-                                <Input id="firstname" type="text" firstname={this.state.firstname} onChange={this.inputFirstnameChangeHandler} />
+                                <Input 
+                                    id="firstname" 
+                                    type="text" 
+                                    firstname={this.state.firstname}
+                                    defaultValue={this.state.firstname} 
+                                    onChange={this.inputFirstnameChangeHandler} />
                                 <FormHelperText className={this.state.firstnameRequired}><span className="red">Required</span></FormHelperText>
-                            </FormControl> <br /><br />
+                            </FormControl>
+                            <br /><br />
                             <FormControl className={classes.formControl}>
                                 <InputLabel htmlFor="lastname">Last Name</InputLabel>
-                                <Input id="lastname" type="text" lastname={this.state.lastname} onChange={this.inputLastnameChangeHandler} />
-                            </FormControl><br /><br />
+                                <Input 
+                                    id="lastname" 
+                                    type="text" 
+                                    lastname={this.state.lastname} 
+                                    defaultValue={this.state.lastname}
+                                    onChange={this.inputLastnameChangeHandler} />
+                            </FormControl>
+                            <br /><br />
                             <FormControl required className={classes.formControl}>
                                 <InputLabel htmlFor="email">Email</InputLabel>
-                                <Input id="email" type="text" email={this.state.email} onChange={this.inputEmailChangeHandler} />
+                                <Input 
+                                    id="email" 
+                                    type="text" 
+                                    email={this.state.email} 
+                                    defaultValue={this.state.email}
+                                    onChange={this.inputEmailChangeHandler} />
                                 <FormHelperText className={this.state.emailRequired}>
                                     {this.state.validEmail === true ? <span className="red">Required</span> :
                                         <span className="red">Invalid Email</span>}
@@ -552,7 +620,12 @@ class Header extends Component {
                             </FormControl><br /><br />
                             <FormControl required className={classes.formControl}>
                                 <InputLabel htmlFor="signupPassword">Password</InputLabel>
-                                <Input id="signupPassword" type="password" signupPassword={this.state.signupPassword} onChange={this.inputSignupPasswordChangeHandler} />
+                                <Input 
+                                    id="signupPassword" 
+                                    type="password" 
+                                    signupPassword={this.state.signupPassword}
+                                    defaultValue={this.state.signupPassword} 
+                                    onChange={this.inputSignupPasswordChangeHandler} />
                                 <FormHelperText className={this.state.signupPasswordRequired}>
                                     {this.state.validPassword === true ? <span className="red">Required</span> :
                                         <span className="red">Password must contain at least one capital letter, one small letter, one number, and
@@ -561,7 +634,12 @@ class Header extends Component {
                             </FormControl><br /><br />
                             <FormControl required className={classes.formControl}>
                                 <InputLabel htmlFor="signupcontactno">Contact No</InputLabel>
-                                <Input id="signupcontactno" type="text" signupcontactno={this.state.signupcontactno} onChange={this.inputsignupcontactnoChangeHandler} />
+                                <Input 
+                                    id="signupcontactno" 
+                                    type="text" 
+                                    signupcontactno={this.state.signupcontactno} 
+                                    defaultValue={this.state.signupcontactno}
+                                    onChange={this.inputsignupcontactnoChangeHandler} />
                                 <FormHelperText className={this.state.signupcontactnoRequired}>
                                    {this.state.validContactNo === true ? <span className="red">Required</span> :
                                    <span className="red">Contact No. must contain only numbers and must be 

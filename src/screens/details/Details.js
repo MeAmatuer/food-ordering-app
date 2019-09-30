@@ -10,6 +10,7 @@ import Badge from '@material-ui/core/Badge';
 import Card from '@material-ui/core/Card';
 import IconButton from '@material-ui/core/IconButton';
 import AddIcon from '@material-ui/icons/Add';
+import Snackbar from '@material-ui/core/Snackbar';
 import Avatar from '@material-ui/core/Avatar';
 import 'font-awesome/css/font-awesome.min.css';
 
@@ -63,6 +64,7 @@ class Details extends Component {
         super();
         this.state = {
             restaurantPhotoUrl: "",
+            restaurantId: "",
             restaurantName: "",
             locality: "",
             categories: [{}],
@@ -74,13 +76,13 @@ class Details extends Component {
             totalCost: 0,
             cartItems: {},
             open: false,
-            successMessage: ""
-        }
-        
+            successMessage: "",
+            badgeVisible: false
+        }    
     }
 
-
     componentWillMount() {
+        // Fetches details of the restaurant
         let resp = {};
         let data = null;
         let xhr = new XMLHttpRequest();
@@ -88,18 +90,19 @@ class Details extends Component {
         var categories = []
         xhr.addEventListener("readystatechange", function () {
             if (xhr.readyState === 4) {
-                console.log(JSON.parse(xhr.responseText))
                 resp = JSON.parse(xhr.responseText)
-                that.setState({ restaurantPhotoUrl: resp.photo_URL });
-                that.setState({ restaurantName: resp.restaurant_name });
-                that.setState({ locality: resp.address.locality });
                 for (var i = 0; i < resp.categories.length; i++) {
                     categories[resp.categories[i].category_name] = resp.categories[i].item_list
                 }
-                that.setState({ categories: categories });
-                that.setState({ rating: resp.customer_rating });
-                that.setState({ numberOfCustomers: resp.number_customers_rated });
-                that.setState({ avgCostForTwo: resp.average_price });
+                that.setState({
+                     restaurantPhotoUrl: resp.photo_URL,
+                     restaurantName: resp.restaurant_name,
+                     restaurantId: resp.id, 
+                     locality: resp.address.locality,
+                     categories: categories,
+                     rating: resp.customer_rating,
+                     numberOfCustomers: resp.number_customers_rated,
+                     avgCostForTwo: resp.average_price});
 
             }
 
@@ -110,7 +113,9 @@ class Details extends Component {
         xhr.send(data);
     }
 
-    addToCart = (itemName, price, type) => {
+    // This function handles adding items to the cart. It creates a structure storing the details of the item
+    // and computes the total cost and total quantity of items in the cart. 
+    addToCart = (itemName, id, price, type) => {
         var count = this.state.cartItemsCount;
         var message = this.state.successMessage;
         var cartItems = this.state.cartItems;
@@ -120,6 +125,7 @@ class Details extends Component {
             this.setState({ itemAdded: true })
 
             cartItems[itemName] = {
+                "id": id,
                 "count": 1,
                 "price": price,
                 "type": type
@@ -142,10 +148,10 @@ class Details extends Component {
             open: true,
             successMessage: message
         });
-
-
     }
 
+    // This function handles removal of items from the cart when the "- : minus" button is clicked.
+    // It updates the total count of items in the cart and computes the total cost
     removeFromCart = (itemName) => {
         var count = this.state.cartItemsCount;
         var items = this.state.cartItems;
@@ -171,18 +177,36 @@ class Details extends Component {
             return
     }
 
+    // This function leads to the checkout page if the customer is logged in (determined if the access token is present).
+    // It prompts the user if the cart is empty or if the user isn't logged in
     checkout = () => {
         if (this.state.cartItemsCount === 0) {
             this.setState({
                 open: true,
                 successMessage: "Please add an item to your cart"
             });
-        } else if (!localStorage.getItem("access-token")) {
+        } else if (!sessionStorage.getItem("access-token")) {
             this.setState({
                 open: true,
                 successMessage: "Please login first!"
             });
         } else {
+            var customerCart = {};
+            var cartItems = [];
+            Object.entries(this.state.cartItems).map( item => (
+                cartItems.push({
+                    id: item[1].id,
+                    price: item[1].count * item[1].price,
+                    quantity: item[1].count
+                })   
+            ))
+            customerCart["cartItems"] = cartItems
+            customerCart["restaurantDetails"] = {
+                "id": this.state.restaurantId,
+                "restaurant_name": this.state.restaurantName
+            }
+            customerCart["totalPrice"] = this.state.totalCost
+            sessionStorage.setItem("customer-cart", customerCart)
             this.props.history.push({
                 pathname: '/checkout/' + this.props.match.params.id,
                 cartItems: this.state.cartItems,
@@ -191,12 +215,29 @@ class Details extends Component {
         }
     }
 
+    // Closes the snackbar that pops up in case of addition/removal of items from the cart or in case the checkout button is 
+    //clicked
+    snackbarClose = (event, reason) => {
+        if (reason === "clickaway") {
+            return;
+        }
+        this.setState({ open: false });
+    }
+
+    // This function handles the visibility of the badge when the modal opens
+    changeBadgeVisibility = () => {
+        this.setState({
+            ...this.state,
+            badgeVisible: !this.state.badgeVisible,
+        })
+    }
+
     render() {
         const { classes } = this.props;
         var keys = Object.keys(this.state.categories)
         return (
             <div>
-                <Header showSearchBox={false} />
+                <Header showSearchBox={false} changeBadgeVisibility={this.changeBadgeVisibility} />
                 <div className="restaurant-details-container">
                     <div>
                         <img className="restaurant-photo" src={this.state.restaurantPhotoUrl} alt={this.state.restaurantName} />
@@ -243,7 +284,9 @@ class Details extends Component {
                                 <Divider />
                                 {
                                     Object.entries(category[1]).map(item => (
+                                        
                                         <div className="menu-item-container" key={item.id}>
+                                        
                                             <span className="spacing">
                                                 <FontAwesomeIcon icon={faCircle} className={item[1].item_type === "VEG" ? "green" : "red"} />
                                             </span>
@@ -252,7 +295,7 @@ class Details extends Component {
                                                 <FontAwesomeIcon icon={faRupeeSign} className="icon-size spacing" />
                                                 <Typography variant="subtitle1" component="p" className={classes.itemPrice} >{item[1].price.toFixed(2)}</Typography>
                                             </div>
-                                            <IconButton className={classes.addButton} aria-label="add" onClick={this.addToCart.bind(this, String(item[1].item_name), item[1].price, item[1].item_type)}>
+                                            <IconButton className={classes.addButton} aria-label="add" onClick={this.addToCart.bind(this, String(item[1].item_name), item[1].id, item[1].price, item[1].item_type)}>
                                                 <AddIcon />
                                             </IconButton>
                                         </div>
@@ -265,8 +308,7 @@ class Details extends Component {
                             <CardHeader
                                 avatar={
                                     <Avatar aria-label="shopping-cart" className={classes.shoppingCart}>
-                                        {console.log("modal == ", localStorage.getItem("modalIsOpen"))}
-                                        <Badge invisible={localStorage.getItem("modalIsOpen") === true ? true : false} badgeContent={this.state.cartItemsCount} showZero color="primary" className={classes.badge}>
+                                        <Badge invisible={this.state.badgeVisible} badgeContent={this.state.cartItemsCount} showZero color="primary" className={classes.badge}>
                                             <ShoppingCartIcon />
                                         </Badge>
                                     </Avatar>
@@ -279,12 +321,14 @@ class Details extends Component {
                             />
                             <CardContent className={classes.cardContent}>
 
-                                {
+                                { 
+                                    
                                     Object.entries(this.state.cartItems).map(item => (
+                                        
                                         this.state.cartItemsCount !== 0 && this.state.cartItems[item[0]]["count"] !== 0 ?
 
                                             <div className="cart-menu-item-container">
-
+                                                {console.log(this.state.cartItems)}
                                                 <i className="fa fa-stop-circle-o" aria-hidden="true" style={{ color: item[1].type === "NON_VEG" ? "#BE4A47" : "#5A9A5B" }}></i>
                                                 <Typography variant="subtitle1" component="p" className={classes.menuItemName} id="cart-menu-item-name" >{item[0]}</Typography>
                                                 <span className="dec-btn">
@@ -323,6 +367,19 @@ class Details extends Component {
                         </Card>
                     </div>
                 </div>
+                <Snackbar
+                    anchorOrigin={{
+                        horizontal: "left",
+                        vertical: "bottom"
+                    }}
+                    open={this.state.open}
+                    onClose={this.snackbarClose}
+                    autoHideDuration={5000}
+                    ContentProps={{
+                        "aria-describedby": "message-id"
+                    }}
+                    message={<span id="message-id">{this.state.successMessage}</span>}
+                />
             </div>
         )
     }
