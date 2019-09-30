@@ -110,6 +110,87 @@ class Details extends Component {
         xhr.send(data);
     }
 
+    addToCart = (itemName, price, type) => {
+        var count = this.state.cartItemsCount;
+        var message = this.state.successMessage;
+        var cartItems = this.state.cartItems;
+        var total = 0;
+
+        if (!cartItems.hasOwnProperty(itemName)) {
+            this.setState({ itemAdded: true })
+
+            cartItems[itemName] = {
+                "count": 1,
+                "price": price,
+                "type": type
+            }
+            count++;
+            message = "Item added to cart!"
+        } else {
+            count++;
+            cartItems[itemName]["count"]++;
+            message = "Item quantity increased by 1!"
+
+        }
+        Object.entries(this.state.cartItems).map(item => (
+            total += (item[1].count * item[1].price)
+        ));
+        this.setState({
+            cartItems: cartItems,
+            cartItemsCount: count,
+            totalCost: total,
+            open: true,
+            successMessage: message
+        });
+
+
+    }
+
+    removeFromCart = (itemName) => {
+        var count = this.state.cartItemsCount;
+        var items = this.state.cartItems;
+        var message = this.state.successMessage;
+        var total = 0;
+        count--;
+
+        if (items.hasOwnProperty(itemName)) {
+            items[itemName]["count"]--;
+            Object.entries(this.state.cartItems).map(item => (
+                total += (item[1].count * item[1].price)
+            ));
+            message = "Item removed from cart!"
+            this.setState({
+                cartItems: items,
+                cartItemsCount: count,
+                totalCost: total,
+                open: true,
+                successMessage: message
+            });
+        }
+        else
+            return
+    }
+
+    checkout = () => {
+        if (this.state.cartItemsCount === 0) {
+            this.setState({
+                open: true,
+                successMessage: "Please add an item to your cart"
+            });
+        } else if (!localStorage.getItem("access-token")) {
+            this.setState({
+                open: true,
+                successMessage: "Please login first!"
+            });
+        } else {
+            this.props.history.push({
+                pathname: '/checkout/' + this.props.match.params.id,
+                cartItems: this.state.cartItems,
+
+            })
+        }
+    }
+
     render() {
         const { classes } = this.props;
         var keys = Object.keys(this.state.categories)
@@ -171,7 +252,7 @@ class Details extends Component {
                                                 <FontAwesomeIcon icon={faRupeeSign} className="icon-size spacing" />
                                                 <Typography variant="subtitle1" component="p" className={classes.itemPrice} >{item[1].price.toFixed(2)}</Typography>
                                             </div>
-                                            <IconButton className={classes.addButton} aria-label="add">
+                                            <IconButton className={classes.addButton} aria-label="add" onClick={this.addToCart.bind(this, String(item[1].item_name), item[1].price, item[1].item_type)}>
                                                 <AddIcon />
                                             </IconButton>
                                         </div>
@@ -184,8 +265,8 @@ class Details extends Component {
                             <CardHeader
                                 avatar={
                                     <Avatar aria-label="shopping-cart" className={classes.shoppingCart}>
-                                        {console.log("modal == ", sessionStorage.getItem("modalOpen"))}
-                                        <Badge invisible={sessionStorage.getItem("modalOpen") === true ? true : false} badgeContent={this.state.cartItemsCount} showZero color="primary" className={classes.badge}>
+                                        {console.log("modal == ", localStorage.getItem("modalIsOpen"))}
+                                        <Badge invisible={localStorage.getItem("modalIsOpen") === true ? true : false} badgeContent={this.state.cartItemsCount} showZero color="primary" className={classes.badge}>
                                             <ShoppingCartIcon />
                                         </Badge>
                                     </Avatar>
@@ -207,7 +288,7 @@ class Details extends Component {
                                                 <i className="fa fa-stop-circle-o" aria-hidden="true" style={{ color: item[1].type === "NON_VEG" ? "#BE4A47" : "#5A9A5B" }}></i>
                                                 <Typography variant="subtitle1" component="p" className={classes.menuItemName} id="cart-menu-item-name" >{item[0]}</Typography>
                                                 <span className="dec-btn">
-                                                    <IconButton id="minus-button" aria-label="remove" className={classes.cartItemButton}>
+                                                    <IconButton id="minus-button" aria-label="remove" onClick={this.removeFromCart.bind(this, String(item[0]))} className={classes.cartItemButton}>
                                                         <FontAwesomeIcon icon={faMinus} size="xs" color="black" style={{ fontSize: 10 }} />
                                                     </IconButton>
                                                 </span>
@@ -216,7 +297,7 @@ class Details extends Component {
                                                 </span>
 
                                                 <span className="inc-btn">
-                                                    <IconButton className={classes.cartItemButton} aria-label="add" >
+                                                    <IconButton className={classes.cartItemButton} aria-label="add" onClick={this.addToCart.bind(this, String(item[0]), item[1].price, item[1].type)}>
                                                         <FontAwesomeIcon icon={faPlus} size="xs" color="black" style={{ fontSize: 10 }} />
                                                     </IconButton>
                                                 </span>
