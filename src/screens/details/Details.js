@@ -1,10 +1,53 @@
 import React, { Component } from 'react';
 import Header from '../../common/header/Header';
-import { Typography } from '@material-ui/core';
+import { Typography, withStyles } from '@material-ui/core';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faStar, faRupeeSign } from '@fortawesome/free-solid-svg-icons';
+import { faStar, faRupeeSign, faCircle } from '@fortawesome/free-solid-svg-icons';
+import Divider from '@material-ui/core/Divider';
 
 import './Details.css';
+
+const styles = (theme => ({
+    menuItemName: {
+        'margin-left': '20px',
+        'white-space': 'nowrap',
+        'text-transform': 'capitalize'
+    },
+    itemPrice: {
+        'padding-left': '5px'
+    },
+    addButton: {
+        'margin-left': '25px',
+    },
+    cartHeader: {
+        'padding-bottom': '0px',
+        'margin-left': '10px',
+        'margin-right': '10px'
+    },
+    shoppingCart: {
+        color: 'black',
+        'background-color': 'white',
+        width: '60px',
+        height: '50px',
+        'margin-left': '-20px',
+    },
+    cardContent: {
+        'padding-top': '0px',
+        'margin-left': '10px',
+        'margin-right': '10px'
+    },
+    cartItemButton: {
+        padding: '10px',
+        'border-radius': '0',
+        color: '#fdd835',
+        '&:hover': {
+            'background-color': '#ffee58',
+        }
+    },
+    CheckoutBtn: {
+        'font-weight': '400'
+    }
+}))
 
 class Details extends Component {
 
@@ -25,7 +68,9 @@ class Details extends Component {
             open: false,
             successMessage: ""
         }
+        
     }
+
 
     componentWillMount() {
         let resp = {};
@@ -47,9 +92,8 @@ class Details extends Component {
                     rating: resp.customer_rating,
                     numberOfCustomers: resp.number_customers_rated,
                     avgCostForTwo: resp.average_price
-                 });
-            }
-        });
+                });
+            }})
         xhr.open("GET", this.props.baseUrl + "/restaurant/" + this.props.match.params.id);
         xhr.setRequestHeader("Cache-Control", "no-cache");
         xhr.setRequestHeader("Accept", "application/json");
@@ -57,7 +101,8 @@ class Details extends Component {
     }
 
 
-    render() {        
+    render() {
+        const { classes } = this.props;
         var keys = Object.keys(this.state.categories)
         return (
             <div>
@@ -99,9 +144,33 @@ class Details extends Component {
                         </div>
                     </div>
                 </div>
+                <div className="menu-details-cart-container">
+                    <div className="menu-details">
+
+                        {Object.entries(this.state.categories).map(category => (
+                            <div key={category.id}>
+                                <Typography variant="subtitle1" component="subtitle1" >{String(category[0]).toUpperCase()}</Typography>
+                                <Divider />
+                                {
+                                    Object.entries(category[1]).map(item => (
+                                        <div className="menu-item-container" key={item.id}>
+                                            <span className="spacing">
+                                                <FontAwesomeIcon icon={faCircle} className={item[1].item_type === "VEG" ? "green" : "red"} />
+                                            </span>
+                                            <Typography variant="subtitle1" className={classes.menuItemName}>{item[1].item_name}</Typography>
+                                            <div className="item-price">
+                                                <FontAwesomeIcon icon={faRupeeSign} className="icon-size spacing" />
+                                                <Typography variant="subtitle1" component="p" className={classes.itemPrice} >{item[1].price.toFixed(2)}</Typography>
+                                            </div>
+                                        </div>
+                                    ))}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
             </div>
-        ) 
+        )
     }
 }
-
-export default Details;
+export default withStyles(styles)(Details);
