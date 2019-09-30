@@ -35,22 +35,21 @@ class Details extends Component {
         var categories = []
         xhr.addEventListener("readystatechange", function () {
             if (xhr.readyState === 4) {
-                console.log(JSON.parse(xhr.responseText))
                 resp = JSON.parse(xhr.responseText)
-                that.setState({ restaurantPhotoUrl: resp.photo_URL });
-                that.setState({ restaurantName: resp.restaurant_name });
-                that.setState({ locality: resp.address.locality });
                 for (var i = 0; i < resp.categories.length; i++) {
                     categories[resp.categories[i].category_name] = resp.categories[i].item_list
                 }
-                that.setState({ categories: categories });
-                that.setState({ rating: resp.customer_rating });
-                that.setState({ numberOfCustomers: resp.number_customers_rated });
-                that.setState({ avgCostForTwo: resp.average_price });
-
+                that.setState({ 
+                    restaurantPhotoUrl: resp.photo_URL,
+                    restaurantName: resp.restaurant_name,
+                    locality: resp.address.locality,
+                    categories: categories,
+                    rating: resp.customer_rating,
+                    numberOfCustomers: resp.number_customers_rated,
+                    avgCostForTwo: resp.average_price
+                 });
             }
-
-        })
+        });
         xhr.open("GET", this.props.baseUrl + "/restaurant/" + this.props.match.params.id);
         xhr.setRequestHeader("Cache-Control", "no-cache");
         xhr.setRequestHeader("Accept", "application/json");
