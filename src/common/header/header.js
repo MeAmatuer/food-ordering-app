@@ -125,6 +125,11 @@ class Header extends Component {
             signupcontactnoRequired: "dispNone",
 
         });
+
+         // Change visibility of badge in details page if login button is clicked
+         if(this.props.changeBadgeVisibility) {
+            this.props.changeBadgeVisibility() 
+         }
     }
 
     //Handler function to close the modal 
@@ -139,6 +144,11 @@ class Header extends Component {
         this.setState({firstnameRequired: "dispNone"});
         this.setState({signupErrorMsg: ""});
         this.setState({loginErrorMsg: ""});
+
+
+        if (this.props.changeBadgeVisibility) {
+            this.props.changeBadgeVisibility();
+        }
     }
 
     //Handler function to manage tab change events
@@ -470,6 +480,7 @@ class Header extends Component {
                     </Grid>
                     {this.props.showSearchBox === true && (
                     <Grid item>
+                    {this.props.showSearchBox === true &&
                     <div className="search-box">
                         <Input
                             className={classes.searchBox}
@@ -485,6 +496,7 @@ class Header extends Component {
                             placeholder="Search by Restaurant Name"
                         />
                     </div>
+                    }
                     </Grid>
                     )}
                     <Grid item>
