@@ -1,9 +1,17 @@
 import React, { Component } from 'react';
 import Header from '../../common/header/Header';
-import { Typography, withStyles } from '@material-ui/core';
+import { Typography, CardContent, Button, withStyles, CardHeader } from '@material-ui/core';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faStar, faRupeeSign, faCircle } from '@fortawesome/free-solid-svg-icons';
+import { faStar, faRupeeSign, faCircle, faMinus, faPlus } from '@fortawesome/free-solid-svg-icons';
 import Divider from '@material-ui/core/Divider';
+import Box from '@material-ui/core/Box';
+import ShoppingCartIcon from '@material-ui/icons/ShoppingCart';
+import Badge from '@material-ui/core/Badge';
+import Card from '@material-ui/core/Card';
+import IconButton from '@material-ui/core/IconButton';
+import AddIcon from '@material-ui/icons/Add';
+import Avatar from '@material-ui/core/Avatar';
+import 'font-awesome/css/font-awesome.min.css';
 
 import './Details.css';
 
@@ -80,26 +88,27 @@ class Details extends Component {
         var categories = []
         xhr.addEventListener("readystatechange", function () {
             if (xhr.readyState === 4) {
+                console.log(JSON.parse(xhr.responseText))
                 resp = JSON.parse(xhr.responseText)
+                that.setState({ restaurantPhotoUrl: resp.photo_URL });
+                that.setState({ restaurantName: resp.restaurant_name });
+                that.setState({ locality: resp.address.locality });
                 for (var i = 0; i < resp.categories.length; i++) {
                     categories[resp.categories[i].category_name] = resp.categories[i].item_list
                 }
-                that.setState({ 
-                    restaurantPhotoUrl: resp.photo_URL,
-                    restaurantName: resp.restaurant_name,
-                    locality: resp.address.locality,
-                    categories: categories,
-                    rating: resp.customer_rating,
-                    numberOfCustomers: resp.number_customers_rated,
-                    avgCostForTwo: resp.average_price
-                });
-            }})
+                that.setState({ categories: categories });
+                that.setState({ rating: resp.customer_rating });
+                that.setState({ numberOfCustomers: resp.number_customers_rated });
+                that.setState({ avgCostForTwo: resp.average_price });
+
+            }
+
+        })
         xhr.open("GET", this.props.baseUrl + "/restaurant/" + this.props.match.params.id);
         xhr.setRequestHeader("Cache-Control", "no-cache");
         xhr.setRequestHeader("Accept", "application/json");
         xhr.send(data);
     }
-
 
     render() {
         const { classes } = this.props;
@@ -162,13 +171,77 @@ class Details extends Component {
                                                 <FontAwesomeIcon icon={faRupeeSign} className="icon-size spacing" />
                                                 <Typography variant="subtitle1" component="p" className={classes.itemPrice} >{item[1].price.toFixed(2)}</Typography>
                                             </div>
+                                            <IconButton className={classes.addButton} aria-label="add">
+                                                <AddIcon />
+                                            </IconButton>
                                         </div>
                                     ))}
                             </div>
                         ))}
                     </div>
-                </div>
+                    <div className="my-cart">
+                        <Card >
+                            <CardHeader
+                                avatar={
+                                    <Avatar aria-label="shopping-cart" className={classes.shoppingCart}>
+                                        {console.log("modal == ", sessionStorage.getItem("modalOpen"))}
+                                        <Badge invisible={sessionStorage.getItem("modalOpen") === true ? true : false} badgeContent={this.state.cartItemsCount} showZero color="primary" className={classes.badge}>
+                                            <ShoppingCartIcon />
+                                        </Badge>
+                                    </Avatar>
+                                }
+                                title="My Cart"
+                                titleTypographyProps={{
+                                    variant: 'h6'
+                                }}
+                                className={classes.cartHeader}
+                            />
+                            <CardContent className={classes.cardContent}>
 
+                                {
+                                    Object.entries(this.state.cartItems).map(item => (
+                                        this.state.cartItemsCount !== 0 && this.state.cartItems[item[0]]["count"] !== 0 ?
+
+                                            <div className="cart-menu-item-container">
+
+                                                <i className="fa fa-stop-circle-o" aria-hidden="true" style={{ color: item[1].type === "NON_VEG" ? "#BE4A47" : "#5A9A5B" }}></i>
+                                                <Typography variant="subtitle1" component="p" className={classes.menuItemName} id="cart-menu-item-name" >{item[0]}</Typography>
+                                                <span className="dec-btn">
+                                                    <IconButton id="minus-button" aria-label="remove" className={classes.cartItemButton}>
+                                                        <FontAwesomeIcon icon={faMinus} size="xs" color="black" style={{ fontSize: 10 }} />
+                                                    </IconButton>
+                                                </span>
+                                                <span className="count">
+                                                    <Typography variant="subtitle1" component="p" className={classes.itemQuantity}>{item[1].count}</Typography>
+                                                </span>
+
+                                                <span className="inc-btn">
+                                                    <IconButton className={classes.cartItemButton} aria-label="add" >
+                                                        <FontAwesomeIcon icon={faPlus} size="xs" color="black" style={{ fontSize: 10 }} />
+                                                    </IconButton>
+                                                </span>
+                                                <div className="item-price">
+                                                    <FontAwesomeIcon icon={faRupeeSign} className="icon-size caption" />
+                                                    <Typography variant="subtitle1" component="p" className={classes.itemPrice} id="cart-item-price">{(item[1].count * item[1].price).toFixed(2)}</Typography>
+                                                </div>
+                                            </div> : null
+                                    ))}
+                                <div className="total-amount-container">
+                                    <Typography variant="subtitle2">
+                                        <Box fontWeight="fontWeightBold">TOTAL AMOUNT</Box>
+                                    </Typography>
+                                    <div className="total-price">
+                                        <FontAwesomeIcon icon={faRupeeSign} />
+                                        <Typography variant="subtitle1" component="p" className={classes.itemPrice} id="cart-total-price">{this.state.totalCost.toFixed(2)}</Typography>
+                                    </div>
+                                </div>
+                                <div>
+                                    <Button variant="contained" color="primary" fullWidth={true} className={classes.CheckoutBtn} onClick={this.checkout}>CHECKOUT</Button>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                </div>
             </div>
         )
     }
