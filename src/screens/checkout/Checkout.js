@@ -94,6 +94,12 @@ const styles = theme => ({
   },
   placeOrderButton: {
     marginTop: "20px"
+  },
+  stepperWidth: {
+    maxWidth: "65%"
+  },
+  summaryWidth: {
+    maxWidth: "35%"
   }
 });
 
@@ -394,9 +400,11 @@ class Checkout extends Component {
   placeOrderOnClickHandler = () => {
     let that = this;
     let itemQuantities = this.state.customerCart.cartItems.map(function(i) {
+      var totalPrice = i.price*i.count;
+      console.log(totalPrice);
       return {
         item_id: i.id,
-        price: i.totalItemPrice,
+        price: totalPrice,
         quantity: i.count
       };
     });
@@ -459,7 +467,7 @@ class Checkout extends Component {
         <Header />
 
         <Grid container={true}>
-          <Grid item={true} xs={9}>
+          <Grid item={true} xs={9} >
             <div>
               <Stepper activeStep={activeStep} orientation="vertical">
                 {steps.map((label, index) => (
@@ -791,8 +799,8 @@ class Checkout extends Component {
           </Grid>
 
           {/* cart summary card */}
-          <Grid item={true} xs>
-            <Card id="summary-card">
+          <Grid item={true} xs >
+            <Card id="summary-card" className="card">
               <CardContent>
                 <Typography variant="h5">Summary</Typography>
                 <br />
@@ -804,15 +812,15 @@ class Checkout extends Component {
 
                 {this.state.customerCart.cartItems.map(item => (
                   <div
-                    key={"item" + item.id + item.category_name}
+                    key={"item" + item.id + item.item_name}
                     className="flex width-100 pd-1-per"
                   >
                     <div className="width-10">
                       <i
                         className={
                           item.item_type === "NON_VEG"
-                            ? "fa fa-stop-circle-o non-veg"
-                            : "fa fa-stop-circle-o veg"
+                            ? "fa fa-stop-circle-o red"
+                            : "fa fa-stop-circle-o green"
                         }
                       />
                     </div>
@@ -826,7 +834,7 @@ class Checkout extends Component {
                       <i className="fa fa-inr" />
                     </div>
                     <div className="checkout-grey-color">
-                      {item.totalItemPrice}.00
+                      {item.price*item.count}.00
                     </div>
                   </div>
                 ))}

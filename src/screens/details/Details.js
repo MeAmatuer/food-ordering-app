@@ -196,7 +196,9 @@ class Details extends Component {
                 cartItems.push({
                     id: item[1].id,
                     price: item[1].count * item[1].price,
-                    quantity: item[1].count
+                    count: item[1].count,
+                    item_type: item[1].type,
+                    item_name: item[0]
                 })   
             ))
             customerCart["cartItems"] = cartItems;
@@ -279,13 +281,13 @@ class Details extends Component {
                     <div className="menu-details">
 
                         {Object.entries(this.state.categories).map(category => (
-                            <div key={category.id}>
-                                <Typography variant="subtitle1" component="subtitle1" >{String(category[0]).toUpperCase()}</Typography>
+                            <div key={category[0]}>
+                                <Typography variant="subtitle1">{String(category[0]).toUpperCase()}</Typography>
                                 <Divider />
                                 {
                                     Object.entries(category[1]).map(item => (
                                         
-                                        <div className="menu-item-container" key={item.id}>
+                                        <div className="menu-item-container" key={item[1].id}>
                                         
                                             <span className="spacing">
                                                 <FontAwesomeIcon icon={faCircle} className={item[1].item_type === "VEG" ? "green" : "red"} />

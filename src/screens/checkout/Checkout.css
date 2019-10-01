@@ -38,3 +38,22 @@
     display: block;
 }
 
+.green {
+    color: green;
+}
+
+.red {
+    color: red;
+}
+
+.flex{
+    display: flex;
+}
+
+.card{
+    margin: 0px;
+}
+
+.stepperWidth{
+    max-width: 70%;
+}
