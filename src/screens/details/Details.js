@@ -112,36 +112,6 @@ class Details extends Component {
         xhr.send(data);
     }
 
-
-    // This function handles removal of items from the cart when the "- : minus" button is clicked.
-    // It updates the total count of items in the cart and computes the total cost
-    removeFromCart = (itemName) => {
-        var count = this.state.cartItemsCount;
-        var items = this.state.cartItems;
-        var message = this.state.successMessage;
-        var total = 0;
-        count--;
-
-        if (items.hasOwnProperty(itemName)) {
-            items[itemName]["count"]--;
-            Object.entries(this.state.cartItems).map(item => (
-                total += (item[1].count * item[1].price)
-            ));
-            message = "Item removed from cart!"
-            this.setState({
-                cartItems: items,
-                cartItemsCount: count,
-                totalCost: total,
-                open: true,
-                successMessage: message
-            });
-        }
-        else
-            return
-    }
-
-
-
     // This function handles adding items to the cart. It creates a structure storing the details of the item
     // and computes the total cost and total quantity of items in the cart. 
     addToCart = (itemName, id, price, type) => {
@@ -179,24 +149,32 @@ class Details extends Component {
         });
     }
 
-    
-    // Closes the snackbar that pops up in case of addition/removal of items from the cart or in case the checkout button is 
-    //clicked
-    snackbarClose = (event, reason) => {
-        if (reason === "clickaway") {
-            return;
+    // This function handles removal of items from the cart when the "- : minus" button is clicked.
+    // It updates the total count of items in the cart and computes the total cost
+    removeFromCart = (itemName) => {
+        var count = this.state.cartItemsCount;
+        var items = this.state.cartItems;
+        var message = this.state.successMessage;
+        var total = 0;
+        count--;
+
+        if (items.hasOwnProperty(itemName)) {
+            items[itemName]["count"]--;
+            Object.entries(this.state.cartItems).map(item => (
+                total += (item[1].count * item[1].price)
+            ));
+            message = "Item removed from cart!"
+            this.setState({
+                cartItems: items,
+                cartItemsCount: count,
+                totalCost: total,
+                open: true,
+                successMessage: message
+            });
         }
-        this.setState({ open: false });
+        else
+            return
     }
-
-    // This function handles the visibility of the badge when the modal opens
-    changeBadgeVisibility = () => {
-        this.setState({
-            ...this.state,
-            badgeVisible: !this.state.badgeVisible,
-        })
-    }
-
 
     // This function leads to the checkout page if the customer is logged in (determined if the access token is present).
     // It prompts the user if the cart is empty or if the user isn't logged in
@@ -237,7 +215,22 @@ class Details extends Component {
         }
     }
 
-    
+    // Closes the snackbar that pops up in case of addition/removal of items from the cart or in case the checkout button is 
+    //clicked
+    snackbarClose = (event, reason) => {
+        if (reason === "clickaway") {
+            return;
+        }
+        this.setState({ open: false });
+    }
+
+    // This function handles the visibility of the badge when the modal opens
+    changeBadgeVisibility = () => {
+        this.setState({
+            ...this.state,
+            badgeVisible: !this.state.badgeVisible,
+        })
+    }
 
     render() {
         const { classes } = this.props;
